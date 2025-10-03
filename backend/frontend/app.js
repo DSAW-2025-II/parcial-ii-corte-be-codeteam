@@ -2,37 +2,38 @@ const loginButton = document.getElementById('loginButton');
 
 loginButton.addEventListener('click', async () => {
     try {
-        // Envío las credenciales al backend
-        const response = await fetch("https://TU_BACKEND_URL/api/v1/auth", {
+        //Envìo las credenciales al backend
+        const response = await fetch("https://TU_BACKEND_URL/api/v1/pokemonDetails", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: "admin@admin.com", password: "admin" })
+            body: JSON.stringify({email: "admin@admin.com", password:"admin"})
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-            alert(data.error);
+            alert(data.error); 
             return;
         }
 
         localStorage.setItem("sessionToken", data.token);
+
         alert("Login successful!");
 
-    } catch (error) {
-        alert(error.message || "An error occurred during login.");
-    }
+        } catch (error) {
+            alert(error.message || "An error occurred during login.");
+        }
 });
-
+    
 const searchButton = document.getElementById('searchButton');
-const pokemonInput = document.getElementById("pokemonInput");
+const pokemonInput = document.getElementById("pokeInput");
 
 searchButton.addEventListener('click', async () => {
     const pokeName = pokemonInput.value.trim().toLowerCase();
     const token = localStorage.getItem("sessionToken");
 
     if (!token) {
-        alert("Please log in first.");
+            alert("Please log in first.");
         return;
     }
 
@@ -63,7 +64,7 @@ searchButton.addEventListener('click', async () => {
             document.getElementById("pokemonWeight").textContent = "";
         }
 
-    } catch (error) {
+        } catch (error) {
         console.error("Error en la búsqueda:", error);
     }
 });
