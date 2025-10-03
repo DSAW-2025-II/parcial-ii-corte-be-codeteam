@@ -1,48 +1,52 @@
+const BASE_URL = window.location.hostname === "localhost"
+  ? "http://localhost:4000"
+  : "https://TU_BACKEND_URL.vercel.app"; // 👈 cámbialo por el de Vercel real
+
+// --- LOGIN ---
 const loginButton = document.getElementById('loginButton');
 
 loginButton.addEventListener('click', async () => {
     try {
-        //Envìo las credenciales al backend
-        const response = await fetch("https://TU_BACKEND_URL/api/v1/pokemonDetails", {
+        const response = await fetch(`${BASE_URL}/api/v1/auth`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({email: "admin@admin.com", password:"admin"})
+            body: JSON.stringify({ email: "admin@admin.com", password: "admin" })
         });
 
         const data = await response.json();
 
         if (!response.ok) {
-            alert(data.error); 
+            alert(data.error || "Error en login");
             return;
         }
 
         localStorage.setItem("sessionToken", data.token);
+        alert("✅ Login exitoso");
 
-        alert("Login successful!");
-
-        } catch (error) {
-            alert(error.message || "An error occurred during login.");
-        }
+    } catch (error) {
+        alert(error.message || "Error en el login");
+    }
 });
-    
+
+// --- BUSCAR POKÉMON ---
 const searchButton = document.getElementById('searchButton');
-const pokemonInput = document.getElementById("pokeInput");
+const pokemonInput = document.getElementById("pokeInput"); // 👈 corregido
 
 searchButton.addEventListener('click', async () => {
     const pokeName = pokemonInput.value.trim().toLowerCase();
     const token = localStorage.getItem("sessionToken");
 
     if (!token) {
-            alert("Please log in first.");
+        alert("⚠️ Primero haz login");
         return;
     }
 
     try {
-        const response = await fetch("https://TU_BACKEND_URL/api/v1/pokemonDetails", {
+        const response = await fetch(`${BASE_URL}/api/v1/pokemonDetails`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}` // Envío el token en el header
+                "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify({ pokemonName: pokeName })
         });
@@ -57,14 +61,15 @@ searchButton.addEventListener('click', async () => {
             document.getElementById("pokemonSpecies").textContent = `Especie: ${data.species}`;
             document.getElementById("pokemonWeight").textContent = `Peso: ${data.weight}`;
         } else {
-            document.getElementById("message").textContent = "Ups! Pokémon no encontrado";
+            document.getElementById("message").textContent = "❌ Pokémon no encontrado";
             document.getElementById("pokemonImage").style.display = "none";
             document.getElementById("pokemonName").textContent = "";
             document.getElementById("pokemonSpecies").textContent = "";
             document.getElementById("pokemonWeight").textContent = "";
         }
 
-        } catch (error) {
+    } catch (error) {
         console.error("Error en la búsqueda:", error);
     }
 });
+
