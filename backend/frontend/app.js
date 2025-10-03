@@ -1,75 +1,117 @@
-const BASE_URL = window.location.hostname === "localhost"
-  ? "http://localhost:4000"
-  : "https://TU_BACKEND_URL.vercel.app"; // 👈 cámbialo por el de Vercel real
+const BACKEND_BASE = 'http://localhost:4000';
 
 // --- LOGIN ---
-const loginButton = document.getElementById('loginButton');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const authStatus = document.getElementById('authStatus');
+const searchBtn = document.getElementById('searchBtn');
+const pokemonInput = document.getElementById('pokemonInput');
+const result = document.getElementById('result');
+const message = document.getElementById('message');
 
-loginButton.addEventListener('click', async () => {
-    try {
-        const response = await fetch(`${BASE_URL}/api/v1/auth`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: "admin@admin.com", password: "admin" })
-        });
+function updateAuthStatus() {
+  const token = localStorage.getItem('sessionToken');
+  if (token) {
+    authStatus.textContent = 'Autenticado';
+    authStatus.style.color = 'green';
+  } else {
+    authStatus.textContent = 'No autenticado';
+    authStatus.style.color = 'red';
+  }
+}
 
-        const data = await response.json();
+loginBtn.addEventListener('click', async () => {
+  const body = {
+    email: 'admin@admin.com',
+    password: 'admin'
+  };
 
-        if (!response.ok) {
-            alert(data.error || "Error en login");
-            return;
-        }
+  try {
+    const res = await fetch(`${BACKEND_BASE}/api/v1/auth`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
 
-        localStorage.setItem("sessionToken", data.token);
-        alert("✅ Login exitoso");
-
-    } catch (error) {
-        alert(error.message || "Error en el login");
+    if (res.ok) {
+      const data = await res.json();
+      localStorage.setItem('sessionToken', data.token);
+      message.textContent = 'Login correcto. Token guardado en localStorage.';
+      message.style.color = 'green';
+      updateAuthStatus();
+    } else {
+      message.textContent = 'Credenciales inválidas';
+      message.style.color = 'red';
     }
+  } catch (e) {
+    message.textContent = 'Error conectando con el backend';
+    message.style.color = 'red';
+  }
 });
 
-// --- BUSCAR POKÉMON ---
-const searchButton = document.getElementById('searchButton');
-const pokemonInput = document.getElementById("pokeInput"); // 👈 corregido
-
-searchButton.addEventListener('click', async () => {
-    const pokeName = pokemonInput.value.trim().toLowerCase();
-    const token = localStorage.getItem("sessionToken");
-
-    if (!token) {
-        alert("⚠️ Primero haz login");
-        return;
-    }
-
-    try {
-        const response = await fetch(`${BASE_URL}/api/v1/pokemonDetails`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ pokemonName: pokeName })
-        });
-
-        const data = await response.json();
-
-        if (response.status === 200) {
-            document.getElementById("message").textContent = "";
-            document.getElementById("pokemonImage").src = data.img_url;
-            document.getElementById("pokemonImage").style.display = "block";
-            document.getElementById("pokemonName").textContent = `Nombre: ${data.name}`;
-            document.getElementById("pokemonSpecies").textContent = `Especie: ${data.species}`;
-            document.getElementById("pokemonWeight").textContent = `Peso: ${data.weight}`;
-        } else {
-            document.getElementById("message").textContent = "❌ Pokémon no encontrado";
-            document.getElementById("pokemonImage").style.display = "none";
-            document.getElementById("pokemonName").textContent = "";
-            document.getElementById("pokemonSpecies").textContent = "";
-            document.getElementById("pokemonWeight").textContent = "";
-        }
-
-    } catch (error) {
-        console.error("Error en la búsqueda:", error);
-    }
+logoutBtn.addEventListener('click', () => {
+  localStorage.removeItem('sessionToken');
+  updateAuthStatus();
+  message.textContent = 'Logout realizado';
+  message.style.color = 'black';
 });
+
+searchBtn.addEventListener('click', async () => {
+  result.innerHTML = '';
+  message.textContent = '';
+  const name = pokemonInput.value.trim();
+  if (!name) {
+    message.textContent = 'Escribe el nombre del Pokémon';
+    return;
+  }
+
+  const token = localStorage.getItem('sessionToken');
+  if (!token) {
+    message.textContent = 'No estás autenticado. Haz login primero.';
+    message.style.color = 'red';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${BACKEND_BASE}/api/v1/pokemonDetails`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ pokemonName: name })
+    });
+
+    if (res.status === 200) {
+      const data = await res.json();
+      const html = `
+        <div class="card">
+          <img src="${data.img_url || 'https://via.placeholder.com/120?text=No+image'}" alt="${data.name}">
+          <div>
+            <h3>${data.name}</h3>
+            <p><strong>Especie:</strong> ${data.species}</p>
+            <p><strong>Peso:</strong> ${data.weight}</p>
+          </div>
+        </div>
+      `;
+      result.innerHTML = html;
+    } else if (res.status === 400) {
+      message.textContent = 'Ups! Pokémon no encontrado';
+      message.style.color = 'red';
+    } else if (res.status === 403) {
+      const err = await res.json();
+      message.textContent = err.error || 'User not authenticated';
+      message.style.color = 'red';
+    } else {
+      message.textContent = 'Error inesperado';
+      message.style.color = 'red';
+    }
+  } catch (e) {
+    message.textContent = 'Error conectando con el backend';
+    message.style.color = 'red';
+  }
+});
+
+// Inicial
+updateAuthStatus();
 
