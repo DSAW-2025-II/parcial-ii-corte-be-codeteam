@@ -16,7 +16,7 @@ function authMiddleware(req, res, next) {
   const token = parts[1];
   try {
     const payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload; // opcional: puedes usar payload más adelante
+    req.user = payload;
     next(); // deja pasar la petición
   } catch (err) {
     return res.status(403).json({ error: 'User not authenticated' });
@@ -24,7 +24,3 @@ function authMiddleware(req, res, next) {
 }
 
 module.exports = authMiddleware;
-
-}
-
-module.exports = authMiddleware; //Exporta los middlewares para q puedan ser usadas en nuestrss rutas protegidas
