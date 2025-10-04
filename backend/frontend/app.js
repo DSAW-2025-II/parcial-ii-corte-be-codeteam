@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN BASE ---
-const BASE_URL = "https://parcial-ii-corte-be-codeteam-19.onrender.com"; // 👈 cámbialo por tu backend en producción
+const BASE_URL = "https://parcial-ii-corte-be-byte-me.onrender.com"; // 👈 cámbialo por tu backend en producción
 
 // --- ELEMENTOS DEL DOM ---
 const loginButton = document.getElementById('loginButton');
