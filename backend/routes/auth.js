@@ -1,30 +1,19 @@
-const express = require('express');   //importamos el express y los tokens
-const jwt = require('jsonwebtoken');
-const router = express.Router();
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL;   // las variables de tipo cont leen los valores desde nuestro archivo .env
-const ADMIN_PASS = process.env.ADMIN_PASS;
+const app = express();
 
-if (!JWT_SECRET || !ADMIN_EMAIL || !ADMIN_PASS) {   //Verificamos que no haga falta ningun dato y si los ay enviamoes el mensaje para alertar
-  console.warn('Warning: set ADMIN_EMAIL, ADMIN_PASS and JWT_SECRET in .env');
-}
+// Middlewares
+app.use(cors());
+app.use(express.json());
 
-// POST /api/v1/auth
-router.post('/auth', (req, res) => {
-  const { email, password } = req.body || {};  //Lee nuestros datos de acceso desde el JSON
+// Rutas
+const authRoutes = require("./routes/auth");   // 👈 importa tu archivo auth.js
+app.use("/api/v1", authRoutes);                // 👈 monta bajo /api/v1
 
-  if (!email || !password) {
-    return res.status(400).json({ error: 'invalid credentials' });   //Tenemos en cuenta que los datos no pueden ser distintos, si fuera el caso retornamos el error 400
-  }
-
-  if (email === ADMIN_EMAIL && password === ADMIN_PASS) {  //comparamos nuestras credenciales y si cumple entra directamente al funcionamiento
-
-    const token = jwt.sign({ email }, JWT_SECRET, { expiresIn: '1h' }); // Si las credenciales son coprrectas se supone que esta funcion deja q el usuario pueda estar como minimo 1h y despues expira
-    return res.status(200).json({ token });
-  } else {
-    return res.status(400).json({ error: 'invalid credentials' });  //asi mismo si no cumple envia el error 400
-  }
+// Arrancar servidor
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
-
-module.exports = router; //Exportamos el router para poder montarlo en nuestro archivo server.js
