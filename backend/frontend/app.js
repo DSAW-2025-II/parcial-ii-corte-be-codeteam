@@ -1,7 +1,5 @@
 // --- CONFIGURACIÓN BASE ---
-const BASE_URL = window.location.hostname === "localhost"
-  ? "http://localhost:4000"
-  : "https://parcial-ii-corte-be-codeteam-19.onrender.com"; // 👈 cámbialo por tu backend en producción
+const BASE_URL = "https://parcial-ii-corte-be-codeteam-19.onrender.com"; // 👈 cámbialo por tu backend en producción
 
 // --- ELEMENTOS DEL DOM ---
 const loginButton = document.getElementById('loginButton');
